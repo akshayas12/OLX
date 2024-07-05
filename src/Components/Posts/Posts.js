@@ -1,10 +1,28 @@
-import React from 'react';
-
+import React, { useContext, useEffect, useState } from 'react';
 import Heart from '../../assets/Heart';
 import './Post.css';
+import { FirebaseContext } from '../../store/firbaseContext';
+import { PostContext } from '../../store/PostContext';
+import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 
 function Posts() {
-
+  const { firebase } = useContext(FirebaseContext);
+  const [products, setProducts] = useState([]);
+  const {setPostDetails} =useContext(PostContext)
+  const history =useHistory()
+  useEffect(() => {
+    // Fetch products from Firebase Firestore
+    firebase.firestore().collection('products').get().then((snapshot) => {
+      const allPosts = snapshot.docs.map((doc) => ({
+        ...doc.data(),
+        id: doc.id
+      }));
+      setProducts(allPosts);
+    }).catch(error => {
+      console.error('Error fetching products:', error);
+    });
+  }, []); 
+  
   return (
     <div className="postParentDiv">
       <div className="moreView">
@@ -13,24 +31,28 @@ function Posts() {
           <span>View more</span>
         </div>
         <div className="cards">
-          <div
-            className="card"
-          >
-            <div className="favorite">
-              <Heart></Heart>
+          {products.map(product => (
+            <div key={product.id}
+            className="card" onClick={()=>{
+              setPostDetails(product)
+            history.push('/view')
+            }} >
+              <div className="favorite">
+                <Heart />
+              </div>
+              <div className="image">
+                <img src={product.url} alt={product.name} />
+              </div>
+              <div className="content">
+                <p className="rate">&#x20B9; {product.price}</p>
+                <span className="kilometer">{product.category}</span>
+                <p className="name">{product.name}</p>
+              </div>
+              <div className="date">
+                <span>{product.createAt}</span>
+              </div>
             </div>
-            <div className="image">
-              <img src="../../../Images/R15V3.jpg" alt="" />
-            </div>
-            <div className="content">
-              <p className="rate">&#x20B9; 250000</p>
-              <span className="kilometer">Two Wheeler</span>
-              <p className="name"> YAMAHA R15V3</p>
-            </div>
-            <div className="date">
-              <span>Tue May 04 2021</span>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
       <div className="recommendations">
@@ -40,15 +62,15 @@ function Posts() {
         <div className="cards">
           <div className="card">
             <div className="favorite">
-              <Heart></Heart>
+              <Heart />
             </div>
             <div className="image">
-              <img src="../../../Images/R15V3.jpg" alt="" />
+              <img src="../../../Images/R15V3.jpg" alt="YAMAHA R15V3" />
             </div>
             <div className="content">
               <p className="rate">&#x20B9; 250000</p>
               <span className="kilometer">Two Wheeler</span>
-              <p className="name"> YAMAHA R15V3</p>
+              <p className="name">YAMAHA R15V3</p>
             </div>
             <div className="date">
               <span>10/5/2021</span>
@@ -59,5 +81,4 @@ function Posts() {
     </div>
   );
 }
-
 export default Posts;
